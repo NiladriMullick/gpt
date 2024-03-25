@@ -1,6 +1,7 @@
-import fitz  # PyMuPDF
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.keys import Keys
+import time
 
 # Path to your Chrome WebDriver executable
 chrome_driver_path = 'path_to_chrome_driver'
@@ -8,41 +9,31 @@ chrome_driver_path = 'path_to_chrome_driver'
 # Path to your PDF file
 pdf_file_path = 'path_to_pdf_file'
 
-# Word to search and highlight
+# Word to search
 word_to_search = 'your_word'
 
 # Start a Chrome WebDriver session
 service = Service(chrome_driver_path)
 driver = webdriver.Chrome(service=service)
 
-# Open the PDF file
-doc = fitz.open(pdf_file_path)
+# Open the PDF file in Chrome
+driver.get(f'file://{pdf_file_path}')
 
-# Iterate through each page to search for the word and highlight it
-for page_num in range(len(doc)):
-    page = doc.load_page(page_num)
-    text_instances = page.search_for(word_to_search)
+# Wait for the PDF to load
+time.sleep(2)  # Adjust this as needed
 
-    for inst in text_instances:
-        # Get the coordinates of the text instance
-        left = inst[0]
-        bottom = page.rect.height - inst[1]  # Flip y-coordinate
-        right = inst[2]
-        top = page.rect.height - inst[3]  # Flip y-coordinate
+# Simulate pressing Ctrl+F to bring up the find dialog
+driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + 'f')
 
-        # Draw a rectangle around the text instance (highlighting)
-        page.add_rect(fitz.Rect(left, bottom, right, top), color=(1, 1, 0))
+# Find the search input field and enter the word to search
+search_input = driver.switch_to.active_element
+search_input.send_keys(word_to_search)
 
-# Save the modified PDF with highlighted text
-highlighted_pdf_path = 'highlighted_pdf.pdf'
-doc.save(highlighted_pdf_path)
+# Wait for a while to let the search results appear
+time.sleep(2)  # Adjust this as needed
 
-# Close the PDF document
-doc.close()
-
-# Open the modified PDF in Chrome and take a screenshot
-driver.get(f'file://{highlighted_pdf_path}')
-driver.save_screenshot('highlighted_pdf_screenshot.png')
+# Take a screenshot
+driver.save_screenshot('pdf_search_result.png')
 
 # Close the WebDriver session
 driver.quit()
