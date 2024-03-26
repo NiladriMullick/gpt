@@ -1,32 +1,30 @@
-import PyPDF2
+import os
+from PyPDF2 import PdfFileReader, PdfWriter
 
-def highlight_words(pdf_path, words_to_highlight, output_path):
-    # Open the PDF file
-    with open(pdf_path, 'rb') as file:
-        reader = PyPDF2.PdfFileReader(file)
-        writer = PyPDF2.PdfFileWriter()
-        
-        # Loop through each page
+def split_pdf(input_pdf_path, output_folder):
+    # Create the output folder if it doesn't exist
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Open the input PDF file
+    with open(input_pdf_path, 'rb') as file:
+        reader = PdfFileReader(file)
+
+        # Iterate over each page in the PDF
         for page_num in range(reader.numPages):
-            page = reader.getPage(page_num)
-            text = page.extractText()
-            
-            # Search for words in the list and highlight them
-            for word in words_to_highlight:
-                if word in text:
-                    # Replace the word with a highlighted version
-                    highlighted_text = text.replace(word, f'<span style="background-color: yellow;">{word}</span>')
-                    page.mergePage(PyPDF2.PdfFileReader(highlighted_text).getPage(0))
-            
-            # Add the modified page to the new PDF
-            writer.addPage(page)
-        
-        # Save the modified PDF
-        with open(output_path, 'wb') as output_file:
-            writer.write(output_file)
+            # Create a PdfWriter object for the current page
+            writer = PdfWriter()
+
+            # Add the current page to the PdfWriter object
+            writer.add_page(reader.getPage(page_num))
+
+            # Create the output PDF file path
+            output_pdf_path = os.path.join(output_folder, f'{page_num + 1}.pdf')
+
+            # Write the current page to the output PDF file
+            with open(output_pdf_path, 'wb') as output_file:
+                writer.write(output_file)
 
 # Example usage
-pdf_path = 'example.pdf'
-words_to_highlight = ['example', 'words', 'list']
-output_path = 'highlighted.pdf'
-highlight_words(pdf_path, words_to_highlight, output_path)
+input_pdf_path = 'input.pdf'  # Replace 'input.pdf' with the path to your PDF file
+output_folder = 'output_folder'  # Specify the output folder where individual PDFs will be saved
+split_pdf(input_pdf_path, output_folder)
