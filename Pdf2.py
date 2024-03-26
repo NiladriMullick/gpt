@@ -1,28 +1,31 @@
 import os
-from PyPDF2 import PdfFileReader, PdfWriter
+import fitz  # PyMuPDF
 
 def split_pdf(input_pdf_path, output_folder):
     # Create the output folder if it doesn't exist
     os.makedirs(output_folder, exist_ok=True)
 
     # Open the input PDF file
-    with open(input_pdf_path, 'rb') as file:
-        reader = PdfFileReader(file)
+    pdf_document = fitz.open(input_pdf_path)
 
-        # Iterate over each page in the PDF
-        for page_num in range(reader.numPages):
-            # Create a PdfWriter object for the current page
-            writer = PdfWriter()
+    # Iterate over each page in the PDF
+    for page_number in range(pdf_document.page_count):
+        # Get the current page
+        page = pdf_document.load_page(page_number)
 
-            # Add the current page to the PdfWriter object
-            writer.add_page(reader.getPage(page_num))
+        # Create the output PDF file path
+        output_pdf_path = os.path.join(output_folder, f'{page_number + 1}.pdf')
 
-            # Create the output PDF file path
-            output_pdf_path = os.path.join(output_folder, f'{page_num + 1}.pdf')
+        # Create a new PDF document containing only the current page
+        new_document = fitz.open()
+        new_document.insert_pdf(pdf_document, from_page=page_number, to_page=page_number)
 
-            # Write the current page to the output PDF file
-            with open(output_pdf_path, 'wb') as output_file:
-                writer.write(output_file)
+        # Save the new document as a separate PDF file
+        new_document.save(output_pdf_path)
+        new_document.close()
+
+    # Close the original PDF document
+    pdf_document.close()
 
 # Example usage
 input_pdf_path = 'input.pdf'  # Replace 'input.pdf' with the path to your PDF file
