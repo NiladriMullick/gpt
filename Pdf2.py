@@ -1,28 +1,23 @@
-from openpyxl import load_workbook
-from openpyxl.drawing.image import Image as ExcelImage
+from openpyxl import Workbook
+from openpyxl.worksheet.hyperlink import Hyperlink
 
-def insert_image_into_excel(image_path, excel_path, sheet_name, cell):
-    # Load the existing Excel workbook
-    wb = load_workbook(excel_path)
-    ws = wb[sheet_name]
+# Create a new workbook
+workbook = Workbook()
+worksheet = workbook.active
 
-    # Load the image
-    img = ExcelImage(image_path)
+# Sample local directory paths of images
+image_paths = [
+    "/path/to/image1.png",
+    "/path/to/image2.png",
+    "/path/to/image3.png"
+]
 
-    # Add the image to the worksheet at the specified cell
-    ws.add_image(img, cell)
+# Write the image paths to the Excel file and create hyperlinks
+for i, path in enumerate(image_paths, start=1):
+    cell = worksheet.cell(row=i, column=1)
+    cell.value = "Image " + str(i)
+    hyperlink = Hyperlink(location=path, display=path)
+    cell.hyperlink = hyperlink
 
-    # Adjust the dimensions of the cell to accommodate the image
-    ws.column_dimensions[cell[0]].width = img.width / 7
-    ws.row_dimensions[int(cell[1:])].height = img.height / 7
-
-    # Save the workbook
-    wb.save(excel_path)
-
-# Example usage
-image_path = 'image.jpg'  # Replace 'image.jpg' with the path to your image file
-excel_path = 'existing_workbook.xlsx'  # Specify the path to the existing Excel workbook
-sheet_name = 'Sheet1'  # Specify the name of the worksheet
-cell = 'A1'  # Specify the cell where you want to insert the image (e.g., 'A1')
-
-insert_image_into_excel(image_path, excel_path, sheet_name, cell)
+# Save the workbook
+workbook.save('images_with_hyperlinks.xlsx')
