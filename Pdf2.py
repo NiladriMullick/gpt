@@ -1,17 +1,34 @@
-from styleframe import StyleFrame
+from openpyxl import load_workbook
+from openpyxl.utils import get_column_letter
 
-# Load Excel files into StyleFrame objects
-sf1 = StyleFrame.read_excel('file1.xlsx')
-sf2 = StyleFrame.read_excel('file2.xlsx')
+# Load the first Excel file
+wb1 = load_workbook('file1.xlsx')
 
-# Copy styles from the original StyleFrame objects
-for column in sf2.columns:
-    for cell in sf2[column]:
-        original_cell = sf1[column][cell.row_index]
-        if isinstance(original_cell, StyleFrame.Styler):
-            cell.style = original_cell.style
+# Load the second Excel file
+wb2 = load_workbook('file2.xlsx')
 
-# Save the merged data to the same workbook but different sheets
-with StyleFrame.ExcelWriter('merged_file.xlsx') as writer:
-    sf1.to_excel(writer, sheet_name='Sheet1', index=False)
-    sf2.to_excel(writer, sheet_name='Sheet2', index=False)
+# Create a new workbook to combine the sheets
+combined_wb = load_workbook()
+
+# Copy sheets from the first workbook to the combined workbook
+for sheet in wb1.sheetnames:
+    source = wb1[sheet]
+    destination = combined_wb.create_sheet(title=sheet)
+    
+    for row in source.iter_rows():
+        for cell in row:
+            destination[cell.coordinate].value = cell.value
+            destination[cell.coordinate].font = cell.font  # Copying font style
+
+# Copy sheets from the second workbook to the combined workbook
+for sheet in wb2.sheetnames:
+    source = wb2[sheet]
+    destination = combined_wb.create_sheet(title=sheet)
+    
+    for row in source.iter_rows():
+        for cell in row:
+            destination[cell.coordinate].value = cell.value
+            destination[cell.coordinate].font = cell.font  # Copying font style
+
+# Save the combined workbook
+combined_wb.save('combined_workbook.xlsx')
