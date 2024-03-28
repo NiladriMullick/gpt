@@ -1,23 +1,17 @@
-from openpyxl import Workbook
-from openpyxl.worksheet.hyperlink import Hyperlink
+from openpyxl import load_workbook
 
-# Create a new workbook
-workbook = Workbook()
-worksheet = workbook.active
+# Load both Excel files
+wb1 = load_workbook('file1.xlsx')
+wb2 = load_workbook('file2.xlsx')
 
-# Sample local directory paths of images
-image_paths = [
-    "/path/to/image1.png",
-    "/path/to/image2.png",
-    "/path/to/image3.png"
-]
+# Get the sheets you want to merge from each workbook
+ws1 = wb1['Sheet1']
+ws2 = wb2['Sheet1']
 
-# Write the image paths to the Excel file and create hyperlinks
-for i, path in enumerate(image_paths, start=1):
-    cell = worksheet.cell(row=i, column=1)
-    cell.value = "Image " + str(i)
-    hyperlink = Hyperlink(location=path, display=path)
-    cell.hyperlink = hyperlink
+# Copy data and formatting from one sheet to another
+for row in ws2.iter_rows(min_row=2, max_row=ws2.max_row, min_col=1, max_col=ws2.max_column):
+    new_row = [cell.value for cell in row]
+    ws1.append(new_row)
 
-# Save the workbook
-workbook.save('images_with_hyperlinks.xlsx')
+# Save the merged workbook
+wb1.save('merged_file.xlsx')
