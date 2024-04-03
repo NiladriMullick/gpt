@@ -1,6 +1,7 @@
 from PyPDF2 import PdfFileReader, PdfFileWriter
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
+from io import BytesIO
 
 def highlight_word(input_pdf_path, output_pdf_path, word_to_highlight):
     # Open the input PDF
@@ -11,7 +12,8 @@ def highlight_word(input_pdf_path, output_pdf_path, word_to_highlight):
         # Iterate through each page of the PDF
         for page_number in range(reader.getNumPages()):
             page = reader.getPage(page_number)
-            pdf_canvas = canvas.Canvas(f"{page_number}.pdf", pagesize=letter)
+            pdf_data = BytesIO()
+            pdf_canvas = canvas.Canvas(pdf_data, pagesize=letter)
             pdf_canvas.setLineWidth(1)
             pdf_canvas.setStrokeColorRGB(1, 0, 0)  # Set highlight color to red
 
@@ -27,18 +29,14 @@ def highlight_word(input_pdf_path, output_pdf_path, word_to_highlight):
             pdf_canvas.save()
 
             # Merge the highlighted page with the original page
-            with open(f"{page_number}.pdf", 'rb') as highlight_file:
-                highlight_page = PdfFileReader(highlight_file).getPage(0)
-                page.merge_page(highlight_page)
-                writer.addPage(page)
+            pdf_data.seek(0)
+            highlight_page = PdfFileReader(pdf_data).getPage(0)
+            page.merge_page(highlight_page)
+            writer.addPage(page)
 
     # Save the modified PDF with highlights
     with open(output_pdf_path, 'wb') as output_file:
         writer.write(output_file)
-
-    # Clean up temporary files
-    for page_number in range(reader.getNumPages()):
-        os.remove(f"{page_number}.pdf")
 
 # Example usage:
 input_pdf_path = 'input.pdf'  # Replace with your input PDF file path
