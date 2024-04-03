@@ -1,43 +1,32 @@
-from openpyxl import load_workbook
-from openpyxl.styles import NamedStyle
+from PyPDF2 import PdfReader, PdfWriter
+from PyPDF2.pdf import PageObject
 
-# Load the first Excel file
-wb1 = load_workbook('file1.xlsx')
+def highlight_word(input_pdf_path, output_pdf_path, word_to_highlight):
+    # Open the input PDF
+    with open(input_pdf_path, 'rb') as file:
+        reader = PdfReader(file)
+        writer = PdfWriter()
 
-# Load the second Excel file
-wb2 = load_workbook('file2.xlsx')
+        # Iterate through each page of the PDF
+        for page_number in range(len(reader.pages)):
+            page = reader.pages[page_number]
+            if '/Annots' in page:
+                annots = page['/Annots']
+                for annot in annots:
+                    if annot['/Subtype'] == '/Highlight':
+                        text = annot.get_object()['/Contents']
+                        if word_to_highlight.encode() in text:
+                            page_annot = PageObject.create_page(None, annot)
+                            page_annot.extract_text()
+                            writer.add_page(page_annot)
 
-# Create a new workbook to combine the sheets
-combined_wb = load_workbook()
+        # Save the modified PDF with highlights
+        with open(output_pdf_path, 'wb') as output_file:
+            writer.write(output_file)
 
-# Copy styles from source to destination
-def copy_style(source, destination):
-    for style in source._cell_styles.values():
-        new_style = NamedStyle(name=style.name)
-        new_style.font = style.font
-        destination._cell_styles[style.name] = new_style
+# Example usage:
+input_pdf_path = 'input.pdf'  # Replace with your input PDF file path
+output_pdf_path = 'highlighted_output.pdf'  # Replace with the path where you want to save the highlighted PDF
+word_to_highlight = 'your_word_here'  # Replace with the word you want to highlight
 
-# Copy sheets from the first workbook to the combined workbook
-for sheet in wb1.sheetnames:
-    source = wb1[sheet]
-    destination = combined_wb.create_sheet(title=sheet)
-    
-    for row in source.iter_rows():
-        for cell in row:
-            destination[cell.coordinate].value = cell.value
-            if cell.has_style:
-                copy_style(cell, destination[cell.coordinate])
-
-# Copy sheets from the second workbook to the combined workbook
-for sheet in wb2.sheetnames:
-    source = wb2[sheet]
-    destination = combined_wb.create_sheet(title=sheet)
-    
-    for row in source.iter_rows():
-        for cell in row:
-            destination[cell.coordinate].value = cell.value
-            if cell.has_style:
-                copy_style(cell, destination[cell.coordinate])
-
-# Save the combined workbook
-combined_wb.save('combined_workbook.xlsx')
+highlight_word(input_pdf_path, output_pdf_path, word_to_highlight)
