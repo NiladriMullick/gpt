@@ -1,23 +1,24 @@
-from pdfminer.high_level import extract_text_to_fp
-from io import BytesIO
+import PyPDF2
 
-def pdf_to_html(input_pdf_path, output_html_path):
-    # Open the input PDF
+def find_word_coordinates(input_pdf_path, word_to_find):
+    # Open the PDF file
     with open(input_pdf_path, 'rb') as file:
-        output_bytes = BytesIO()
+        # Create a PDF reader object
+        pdf_reader = PyPDF2.PdfReader(file)
+        
+        # Get the first (and only) page
+        page = pdf_reader.pages[0]
 
-        # Extract text to a BytesIO buffer
-        extract_text_to_fp(file, output_bytes, output_type='html')
-
-        # Convert BytesIO content to string
-        html_content = output_bytes.getvalue().decode('utf-8')
-
-        # Write the HTML content to the output file
-        with open(output_html_path, 'w', encoding='utf-8') as output_file:
-            output_file.write(html_content)
+        # Iterate through each text element on the page
+        for text_object in page.extract_words():
+            text = text_object['text']
+            if text == word_to_find:
+                # Print the coordinates of the word
+                x0, y0, x1, y1 = text_object['x0'], text_object['top'], text_object['x1'], text_object['bottom']
+                print(f"Word '{word_to_find}' found at coordinates: ({x0}, {y0}, {x1}, {y1})")
 
 # Example usage:
 input_pdf_path = 'input.pdf'  # Replace with your input PDF file path
-output_html_path = 'output.html'  # Replace with the path where you want to save the HTML file
+word_to_find = 'your_word_here'  # Replace with the word you want to find
 
-pdf_to_html(input_pdf_path, output_html_path)
+find_word_coordinates(input_pdf_path, word_to_find)
