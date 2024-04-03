@@ -1,7 +1,5 @@
 from PyPDF2 import PdfFileReader, PdfFileWriter
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-from io import BytesIO
+from PyPDF2.generic import RectangleObject
 
 def highlight_word(input_pdf_path, output_pdf_path, word_to_highlight):
     # Open the input PDF
@@ -12,36 +10,24 @@ def highlight_word(input_pdf_path, output_pdf_path, word_to_highlight):
         # Iterate through each page of the PDF
         for page_number in range(reader.getNumPages()):
             page = reader.getPage(page_number)
-            pdf_data = BytesIO()
-            pdf_canvas = canvas.Canvas(pdf_data, pagesize=letter)
-            pdf_canvas.setFont("Times-Roman", 12)
+            annotations = page['/Annots'] if '/Annots' in page.keys() else []
 
-            text = page.extractText()
-            text_objects = text.split(word_to_highlight)
-            x = 0
-            for i, text_part in enumerate(text_objects):
-                # Draw text
-                pdf_canvas.drawString(x, 0, text_part)
-                x += pdf_canvas.stringWidth(text_part, "Times-Roman", 12)
+            for annotation in annotations:
+                if annotation['/Subtype'] == '/Highlight':
+                    text = annotation.get_object()['/Contents']
+                    if word_to_highlight.encode() in text:
+                        rect = annotation['/Rect']
+                        highlight = RectangleObject([rect[0], rect[1], rect[2], rect[3]])
+                        highlight.upperLeft = (highlight.lowerLeft[0], highlight.upperLeft[1])
+                        highlight.upperRight = (highlight.lowerRight[0], highlight.upperRight[1])
+                        highlight.setBorderColor((1, 1, 0))  # Yellow color
+                        highlight.update({
+                            NameObject("/F"): 4,
+                            NameObject("/Contents"): TextStringObject(""),
+                            NameObject("/AP"): IndirectObject(annotation['/AP'].objid, 0)
+                        })
+                        page.annot_append(highlight)
 
-                # Highlight word
-                if i < len(text_objects) - 1:
-                    # Get position for highlighting
-                    word_width = pdf_canvas.stringWidth(word_to_highlight, "Times-Roman", 12)
-                    x += pdf_canvas.stringWidth(word_to_highlight, "Times-Roman", 12) / 2
-                    y = 10  # Adjust this value based on your requirements
-
-                    # Draw highlight
-                    pdf_canvas.setFillColorRGB(1, 1, 0)  # Yellow color (RGB values)
-                    pdf_canvas.setStrokeColorRGB(1, 1, 0)  # Yellow color for outline as well
-                    pdf_canvas.rect(x, y, word_width, 12, stroke=1, fill=1)
-
-            pdf_canvas.save()
-
-            # Merge the highlighted page with the original page
-            pdf_data.seek(0)
-            highlight_page = PdfFileReader(pdf_data).getPage(0)
-            page.merge_page(highlight_page)
             writer.addPage(page)
 
         # Save the modified PDF with highlights
