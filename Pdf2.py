@@ -14,18 +14,28 @@ def highlight_word(input_pdf_path, output_pdf_path, word_to_highlight):
             page = reader.getPage(page_number)
             pdf_data = BytesIO()
             pdf_canvas = canvas.Canvas(pdf_data, pagesize=letter)
-            pdf_canvas.setLineWidth(1)
-            pdf_canvas.setStrokeColorRGB(1, 0, 0)  # Set highlight color to red
+            pdf_canvas.setFont("Times-Roman", 12)
 
-            text_objects = page.extractText().split(word_to_highlight)
+            text = page.extractText()
+            text_objects = text.split(word_to_highlight)
             x = 0
-            for text in text_objects[:-1]:
-                x += pdf_canvas.stringWidth(text, "Times-Roman", 12)
-                pdf_canvas.drawString(x, 0, text)
-                x += pdf_canvas.stringWidth(word_to_highlight, "Times-Roman", 12)
-                pdf_canvas.setFillColorRGB(1, 1, 0)  # Set fill color to yellow
-                pdf_canvas.drawString(x, 0, word_to_highlight)
-                pdf_canvas.setStrokeColorRGB(1, 0, 0)  # Reset stroke color to red
+            for i, text_part in enumerate(text_objects):
+                # Draw text
+                pdf_canvas.drawString(x, 0, text_part)
+                x += pdf_canvas.stringWidth(text_part, "Times-Roman", 12)
+
+                # Highlight word
+                if i < len(text_objects) - 1:
+                    # Get position for highlighting
+                    word_width = pdf_canvas.stringWidth(word_to_highlight, "Times-Roman", 12)
+                    x += pdf_canvas.stringWidth(word_to_highlight, "Times-Roman", 12) / 2
+                    y = 10  # Adjust this value based on your requirements
+
+                    # Draw highlight
+                    pdf_canvas.setFillColorRGB(1, 1, 0)  # Yellow color
+                    pdf_canvas.setStrokeColorRGB(1, 0, 0)  # Red color
+                    pdf_canvas.rect(x, y, word_width, 12, stroke=1, fill=1)
+
             pdf_canvas.save()
 
             # Merge the highlighted page with the original page
