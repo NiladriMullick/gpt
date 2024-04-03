@@ -1,5 +1,5 @@
 from PyPDF2 import PdfFileReader, PdfFileWriter
-from PyPDF2.generic import RectangleObject
+from PyPDF2.generic import RectangleObject, NameObject, TextStringObject, IndirectObject
 
 def highlight_word(input_pdf_path, output_pdf_path, word_to_highlight):
     # Open the input PDF
@@ -10,23 +10,34 @@ def highlight_word(input_pdf_path, output_pdf_path, word_to_highlight):
         # Iterate through each page of the PDF
         for page_number in range(reader.getNumPages()):
             page = reader.getPage(page_number)
-            annotations = page['/Annots'] if '/Annots' in page.keys() else []
+            text = page.extractText()
 
-            for annotation in annotations:
-                if annotation['/Subtype'] == '/Highlight':
-                    text = annotation.get_object()['/Contents']
-                    if word_to_highlight.encode() in text:
-                        rect = annotation['/Rect']
-                        highlight = RectangleObject([rect[0], rect[1], rect[2], rect[3]])
-                        highlight.upperLeft = (highlight.lowerLeft[0], highlight.upperLeft[1])
-                        highlight.upperRight = (highlight.lowerRight[0], highlight.upperRight[1])
-                        highlight.setBorderColor((1, 1, 0))  # Yellow color
-                        highlight.update({
-                            NameObject("/F"): 4,
-                            NameObject("/Contents"): TextStringObject(""),
-                            NameObject("/AP"): IndirectObject(annotation['/AP'].objid, 0)
-                        })
-                        page.annot_append(highlight)
+            # Find all occurrences of the word on the page
+            occurrences = []
+            start = 0
+            while True:
+                start = text.find(word_to_highlight, start)
+                if start == -1:
+                    break
+                end = start + len(word_to_highlight)
+                occurrences.append((start, end))
+                start = end
+
+            # Add highlight annotations to the occurrences
+            for start, end in occurrences:
+                lower_left_x, lower_left_y, upper_right_x, upper_right_y = page.bbox.getLowerLeft()
+                page_width = upper_right_x - lower_left_x
+                page_height = upper_right_y - lower_left_y
+
+                highlight = RectangleObject([lower_left_x, lower_left_y, upper_right_x, upper_right_y])
+                highlight.upperLeft = (lower_left_x + start / len(text) * page_width, upper_right_y - page_height * 0.9)
+                highlight.lowerRight = (lower_left_x + end / len(text) * page_width, upper_right_y - page_height * 0.95)
+                highlight.setBorderColor((1, 1, 0))  # Yellow color
+                highlight.update({
+                    NameObject("/F"): 4,
+                    NameObject("/Contents"): TextStringObject(""),
+                })
+                page.addAnnotation(highlight)
 
             writer.addPage(page)
 
