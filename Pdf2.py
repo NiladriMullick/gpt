@@ -1,4 +1,4 @@
-from pdfrw import PdfReader, PdfWriter, PageObject
+from pdfrw import PdfReader, PdfWriter
 
 def highlight_word(input_pdf_path, output_pdf_path, word_to_highlight):
     # Open the input PDF
@@ -20,10 +20,11 @@ def highlight_word(input_pdf_path, output_pdf_path, word_to_highlight):
             word_x0, word_y0, word_x1, word_y1 = page.MediaBox[0], page.MediaBox[1], page.MediaBox[2], page.MediaBox[3]
 
             # Add highlight annotation to the word's position
-            highlight_annot = PageObject.create_annotation('Highlight',
-                                                           Rect=[word_x0, word_y0, word_x1, word_y1],
-                                                           Contents='',
-                                                           Name='HL')
+            highlight_annot = {'Type': '/Annot',
+                               'Subtype': '/Highlight',
+                               'Rect': [word_x0, word_y0, word_x1, word_y1],
+                               'Contents': ''}
+
             if '/Annots' in page:
                 page.Annots.append(highlight_annot)
             else:
