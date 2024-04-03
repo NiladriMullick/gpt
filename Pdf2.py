@@ -1,4 +1,4 @@
-from pdfrw import PdfReader, PdfWriter, PageArray, IndirectPdfDict
+from pdfrw import PdfReader, PdfWriter, PageObject
 
 def highlight_word(input_pdf_path, output_pdf_path, word_to_highlight):
     # Open the input PDF
@@ -20,17 +20,14 @@ def highlight_word(input_pdf_path, output_pdf_path, word_to_highlight):
             word_x0, word_y0, word_x1, word_y1 = page.MediaBox[0], page.MediaBox[1], page.MediaBox[2], page.MediaBox[3]
 
             # Add highlight annotation to the word's position
-            highlight_annot = IndirectPdfDict(
-                Type="/Annot",
-                Subtype="/Highlight",
-                Rect=[word_x0, word_y0, word_x1, word_y1],
-                Contents=""
-            )
-
+            highlight_annot = PageObject.create_annotation('Highlight',
+                                                           Rect=[word_x0, word_y0, word_x1, word_y1],
+                                                           Contents='',
+                                                           Name='HL')
             if '/Annots' in page:
                 page.Annots.append(highlight_annot)
             else:
-                page.Annots = PageArray([highlight_annot])
+                page.Annots = [highlight_annot]
 
         # Add the modified page to the output PDF
         output_pdf.addpage(page)
