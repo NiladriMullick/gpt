@@ -32,8 +32,8 @@ def highlight_word(input_pdf_path, output_pdf_path, word_to_highlight):
                     y = 10  # Adjust this value based on your requirements
 
                     # Draw highlight
-                    pdf_canvas.setFillColorRGB(1, 1, 0)  # Yellow color
-                    pdf_canvas.setStrokeColorRGB(1, 0, 0)  # Red color
+                    pdf_canvas.setFillColorRGB(1, 1, 0)  # Yellow color (RGB values)
+                    pdf_canvas.setStrokeColorRGB(1, 1, 0)  # Yellow color for outline as well
                     pdf_canvas.rect(x, y, word_width, 12, stroke=1, fill=1)
 
             pdf_canvas.save()
