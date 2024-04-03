@@ -34,9 +34,9 @@ def highlight_word(input_pdf_path, output_pdf_path, word_to_highlight):
             page.merge_page(highlight_page)
             writer.addPage(page)
 
-    # Save the modified PDF with highlights
-    with open(output_pdf_path, 'wb') as output_file:
-        writer.write(output_file)
+        # Save the modified PDF with highlights
+        with open(output_pdf_path, 'wb') as output_file:
+            writer.write(output_file)
 
 # Example usage:
 input_pdf_path = 'input.pdf'  # Replace with your input PDF file path
