@@ -1,13 +1,14 @@
-import sys
-import select
+import time
 
 def wait_for_input(timeout):
     print("Please enter input within", timeout, "seconds:")
-    i, _, _ = select.select([sys.stdin], [], [], timeout)
-    if i:
-        return sys.stdin.readline().strip()
-    else:
-        return None
+    start_time = time.time()
+    while True:
+        if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+            return sys.stdin.readline().strip()
+        if time.time() - start_time > timeout:
+            return None
+        time.sleep(1)
 
 # Wait for input for 10 seconds
 user_input = wait_for_input(10)
