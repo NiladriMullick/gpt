@@ -1,18 +1,14 @@
-import nltk
-from nltk.corpus import wordnet
+from openpyxl import load_workbook
 
-def get_verb_variations(word):
-    variations = set()
-    for synset in wordnet.synsets(word, pos='v'):
-        for lemma in synset.lemmas():
-            variations.add(lemma.name())
-    return variations
+# Load the existing workbook
+workbook = load_workbook('existing_workbook.xlsx')
 
-words = ["play", "eat", "run"]  # Example list of words
-verb_variations = {}
-for word in words:
-    verb_variations[word] = get_verb_variations(word)
+# Access the active worksheet
+worksheet = workbook.active
 
-print("Verb Variations:")
-for word, variations in verb_variations.items():
-    print(f"{word}: {', '.join(variations)}")
+# Fill certain cells
+worksheet['A1'] = 'Filled Data 1'
+worksheet['B1'] = 'Filled Data 2'
+
+# Save the workbook
+workbook.save('filled_workbook.xlsx')
