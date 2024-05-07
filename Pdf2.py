@@ -1,15 +1,19 @@
-import re
+import nltk
+from nltk.corpus import wordnet
 
-s = "aeroplane,ship,(mythology,indus,dog),(cat,crow),hog"
+def get_verb_variations(word):
+    variations = set()
+    for synset in wordnet.synsets(word):
+        for lemma in synset.lemmas():
+            if lemma.name().startswith(word) and lemma.name() != word:
+                variations.add(lemma.name())
+    return variations
 
-# Define a pattern to match text inside brackets
-pattern = r'\((.*?)\)'
+words = ["play", "eat", "run"]  # Example list of words
+verb_variations = {}
+for word in words:
+    verb_variations[word] = get_verb_variations(word)
 
-# Define a function to replace commas inside brackets with semicolons
-def replace_commas(match):
-    return match.group(0).replace(',', ';')
-
-# Use re.sub() to replace commas inside brackets with semicolons
-Afinal_s = re.sub(pattern, replace_commas, s)
-
-print(Afinal_s)
+print("Verb Variations:")
+for word, variations in verb_variations.items():
+    print(f"{word}: {', '.join(variations)}")
