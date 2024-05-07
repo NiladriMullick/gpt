@@ -3,10 +3,9 @@ from nltk.corpus import wordnet
 
 def get_verb_variations(word):
     variations = set()
-    for synset in wordnet.synsets(word):
+    for synset in wordnet.synsets(word, pos='v'):
         for lemma in synset.lemmas():
-            if lemma.name().startswith(word) and lemma.name() != word:
-                variations.add(lemma.name())
+            variations.add(lemma.name())
     return variations
 
 words = ["play", "eat", "run"]  # Example list of words
