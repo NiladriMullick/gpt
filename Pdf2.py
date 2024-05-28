@@ -1,22 +1,29 @@
 import pandas as pd
 import os
 
-# Define the directory containing the Excel files
-directory = 'path/to/your/excel/files'
+# Directory containing the Excel files
+directory = '/path/to/your/excel/files'
 
-# List all Excel files in the directory
-excel_files = [file for file in os.listdir(directory) if file.endswith('.xlsx') or file.endswith('.xls')]
-
-# Read each Excel file into a DataFrame and store them in a list
+# Initialize an empty list to hold the DataFrames
 dataframes = []
-for file in excel_files:
-    file_path = os.path.join(directory, file)
-    df = pd.read_excel(file_path)
-    dataframes.append(df)
 
-# Concatenate all DataFrames into a single DataFrame
-concatenated_df = pd.concat(dataframes, ignore_index=True)
+# Loop through all files in the directory
+for filename in os.listdir(directory):
+    if filename.endswith('.xlsx') or filename.endswith('.xls'):
+        # Construct the full file path
+        file_path = os.path.join(directory, filename)
+        
+        # Read the specific sheet into a DataFrame
+        try:
+            df = pd.read_excel(file_path, sheet_name='AllArticles')
+            dataframes.append(df)
+        except Exception as e:
+            print(f"Could not read sheet 'AllArticles' from file {filename}: {e}")
 
-# (Optional) Save the concatenated DataFrame to a new Excel file
-output_file = 'path/to/output/concatenated_file.xlsx'
-concatenated_df.to_excel(output_file, index=False)
+# Concatenate all the DataFrames into one
+combined_df = pd.concat(dataframes, ignore_index=True)
+
+# Optionally, save the combined DataFrame to a new Excel file
+# combined_df.to_excel('/path/to/save/combined_data.xlsx', index=False)
+
+print(combined_df)
