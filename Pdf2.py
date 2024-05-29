@@ -1,30 +1,17 @@
-import pandas as pd
-import os
+Given the current date: 2024-05-29.
 
-# Base directory containing the Excel files
-base_directory = '/path/to/your/excel/files'
+Identify the timeframe or date range mentioned in the following user query and provide the start and end dates in the "YYYY-mm-dd" format. If no specific date range is mentioned in the query, return "None".
 
-# Initialize an empty list to hold the DataFrames
-dataframes = []
+User Query: Give me negative news about TCS from past one month.
 
-# Walk through all directories and subdirectories
-for root, dirs, files in os.walk(base_directory):
-    for filename in files:
-        if filename.endswith('.xlsx') or filename.endswith('.xls'):
-            # Construct the full file path
-            file_path = os.path.join(root, filename)
-            
-            # Read the specific sheet into a DataFrame
-            try:
-                df = pd.read_excel(file_path, sheet_name='AllArticles')
-                dataframes.append(df)
-            except Exception as e:
-                print(f"Could not read sheet 'AllArticles' from file {filename}: {e}")
+Output the date range in the following format: "Start Date: YYYY-mm-dd, End Date: YYYY-mm-dd" or "None" if no date range is provided.
 
-# Concatenate all the DataFrames into one
-combined_df = pd.concat(dataframes, ignore_index=True)
+Examples:
+1. User Query: "Give me negative news about TCS from past one month."
+   Output: "Start Date: 2024-04-29, End Date: 2024-05-29"
 
-# Optionally, save the combined DataFrame to a new Excel file
-# combined_df.to_excel('/path/to/save/combined_data.xlsx', index=False)
+2. User Query: "Show me all the events from last year."
+   Output: "Start Date: 2023-01-01, End Date: 2023-12-31"
 
-print(combined_df)
+3. User Query: "Tell me about TCS."
+   Output: "None"
